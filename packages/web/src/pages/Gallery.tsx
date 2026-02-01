@@ -200,7 +200,7 @@ export default function Gallery() {
                 <img
                   src={memes.imageUrl(selectedMeme.output_filename)}
                   alt={selectedMeme.template_name || 'Meme'}
-                  className="w-full h-auto rounded-lg mb-4"
+                  className="w-full h-auto max-h-[60vh] object-contain mx-auto rounded-lg mb-4"
                 />
               )}
               <div className="flex items-center justify-between">

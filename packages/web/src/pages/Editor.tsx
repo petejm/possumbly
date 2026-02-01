@@ -96,16 +96,22 @@ export default function Editor() {
     });
   }, []);
 
-  // Handle window resize
+  // Handle container resize with ResizeObserver
   useEffect(() => {
-    const handleResize = () => {
-      if (template) {
-        updateStageSize(template.width, template.height);
-      }
-    };
+    if (!containerRef.current || !template) return;
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver((entries) => {
+      window.requestAnimationFrame(() => {
+        if (entries[0]?.contentRect.width > 0) {
+          updateStageSize(template.width, template.height);
+        }
+      });
+    });
+
+    resizeObserver.observe(containerRef.current);
+    updateStageSize(template.width, template.height);
+
+    return () => resizeObserver.disconnect();
   }, [template, updateStageSize]);
 
   // Update transformer when selection changes
@@ -259,7 +265,7 @@ export default function Editor() {
             height={stageSize.height}
             onClick={handleStageClick}
             className="mx-auto"
-            style={{ background: '#000' }}
+            style={{ background: 'var(--color-bg-tertiary)' }}
           >
             <Layer>
               <KonvaImage image={templateImage} width={stageSize.width} height={stageSize.height} />

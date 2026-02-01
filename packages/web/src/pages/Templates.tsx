@@ -211,13 +211,21 @@ export default function Templates() {
           {templateList.map((template) => (
             <div key={template.id} className="card p-4 group relative">
               <div
-                className="aspect-square bg-themed-tertiary rounded-lg mb-3 overflow-hidden cursor-pointer"
+                className="aspect-square bg-themed-tertiary rounded-lg mb-3 overflow-hidden cursor-pointer relative"
                 onClick={() => navigate(`/editor/${template.id}`)}
               >
+                {/* Blurred background to fill gaps */}
+                <img
+                  src={templates.imageUrl(template.filename)}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-50"
+                  aria-hidden="true"
+                />
+                {/* Main image */}
                 <img
                   src={templates.imageUrl(template.filename)}
                   alt={template.name}
-                  className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                  className="relative w-full h-full object-contain group-hover:scale-105 transition-transform"
                 />
               </div>
               <h3 className="font-medium text-themed-primary truncate">{template.name}</h3>

@@ -98,21 +98,41 @@ export default function MyMemes() {
           {memeList.map((meme) => (
             <div key={meme.id} className="card p-4 group relative">
               <div
-                className="aspect-square bg-themed-tertiary rounded-lg mb-3 overflow-hidden cursor-pointer"
+                className="aspect-square bg-themed-tertiary rounded-lg mb-3 overflow-hidden cursor-pointer relative"
                 onClick={() => navigate(`/editor/${meme.template_id}/${meme.id}`)}
               >
                 {meme.output_filename ? (
-                  <img
-                    src={memes.imageUrl(meme.output_filename)}
-                    alt="Meme"
-                    className="w-full h-full object-contain group-hover:scale-105 transition-transform"
-                  />
+                  <>
+                    {/* Blurred background to fill gaps */}
+                    <img
+                      src={memes.imageUrl(meme.output_filename)}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-50"
+                      aria-hidden="true"
+                    />
+                    {/* Main image */}
+                    <img
+                      src={memes.imageUrl(meme.output_filename)}
+                      alt="Meme"
+                      className="relative w-full h-full object-contain group-hover:scale-105 transition-transform"
+                    />
+                  </>
                 ) : meme.template_filename ? (
-                  <img
-                    src={templates.imageUrl(meme.template_filename)}
-                    alt="Template"
-                    className="w-full h-full object-contain group-hover:scale-105 transition-transform"
-                  />
+                  <>
+                    {/* Blurred background to fill gaps */}
+                    <img
+                      src={templates.imageUrl(meme.template_filename)}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-50"
+                      aria-hidden="true"
+                    />
+                    {/* Main image */}
+                    <img
+                      src={templates.imageUrl(meme.template_filename)}
+                      alt="Template"
+                      className="relative w-full h-full object-contain group-hover:scale-105 transition-transform"
+                    />
+                  </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-themed-muted">
                     No preview

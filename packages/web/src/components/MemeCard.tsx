@@ -48,16 +48,26 @@ export default function MemeCard({ meme, onVoteChange, onClick }: MemeCardProps)
   return (
     <div className="card p-4 group">
       <div
-        className="aspect-square bg-themed-tertiary rounded-lg mb-3 overflow-hidden cursor-pointer"
+        className="aspect-square bg-themed-tertiary rounded-lg mb-3 overflow-hidden cursor-pointer relative"
         onClick={onClick}
       >
         {imageUrl && !imageError ? (
-          <img
-            src={imageUrl}
-            alt={meme.template_name || 'Meme'}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform"
-            onError={() => setImageError(true)}
-          />
+          <>
+            {/* Blurred background to fill gaps */}
+            <img
+              src={imageUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-50"
+              aria-hidden="true"
+            />
+            {/* Main image */}
+            <img
+              src={imageUrl}
+              alt={meme.template_name || 'Meme'}
+              className="relative w-full h-full object-contain group-hover:scale-105 transition-transform"
+              onError={() => setImageError(true)}
+            />
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-themed-muted">
             No preview
