@@ -1,4 +1,5 @@
-version: '3.8'
+# Docker Compose file for Possumbly
+# Requires Docker Compose v2 with BuildKit
 
 services:
   possumbly:

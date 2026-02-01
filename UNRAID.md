@@ -61,7 +61,7 @@ Choose at least one OAuth provider and create credentials:
 Create `/mnt/user/appdata/possumbly/docker-compose.yml`:
 
 ```yaml
-version: '3.8'
+# Docker Compose file - requires Docker Compose v2 with BuildKit
 
 services:
   possumbly:
@@ -276,7 +276,9 @@ If you want to build the image locally instead of using a pre-built image:
 cd /mnt/user/appdata/possumbly
 git clone https://github.com/petejm/possumbly.git source
 cd source
-docker build -t possumbly:local .
+
+# Build with BuildKit (required for Docker 23+)
+docker buildx build --load -t possumbly:local .
 ```
 
 Then use `possumbly:local` as the image in your configuration.
