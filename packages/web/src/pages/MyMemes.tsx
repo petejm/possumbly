@@ -47,17 +47,27 @@ export default function MyMemes() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-possum-600 border-t-transparent"></div>
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-4 border-themed"
+          style={{ borderTopColor: 'var(--color-bg-accent)' }}
+        ></div>
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-possum-800 mb-8">My Memes</h1>
+      <h1 className="text-3xl font-bold text-themed-primary mb-8">My Memes</h1>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div
+          className="px-4 py-3 rounded-lg mb-6 border"
+          style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderColor: 'var(--color-error)',
+            color: 'var(--color-error)',
+          }}
+        >
           {error}
           <button onClick={() => setError('')} className="float-right font-bold">
             &times;
@@ -67,7 +77,7 @@ export default function MyMemes() {
 
       {memeList.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-possum-500 text-lg mb-4">You haven't created any memes yet</p>
+          <p className="text-themed-muted text-lg mb-4">You haven't created any memes yet</p>
           <button onClick={() => navigate('/')} className="btn btn-primary">
             Browse templates
           </button>
@@ -77,7 +87,7 @@ export default function MyMemes() {
           {memeList.map((meme) => (
             <div key={meme.id} className="card p-4 group relative">
               <div
-                className="aspect-square bg-possum-100 rounded-lg mb-3 overflow-hidden cursor-pointer"
+                className="aspect-square bg-themed-tertiary rounded-lg mb-3 overflow-hidden cursor-pointer"
                 onClick={() => navigate(`/editor/${meme.template_id}/${meme.id}`)}
               >
                 {meme.output_filename ? (
@@ -93,19 +103,20 @@ export default function MyMemes() {
                     className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-possum-400">
+                  <div className="w-full h-full flex items-center justify-center text-themed-muted">
                     No preview
                   </div>
                 )}
               </div>
-              <p className="text-sm text-possum-600 truncate">
+              <p className="text-sm text-themed-secondary truncate">
                 {meme.template_name || 'Untitled'}
               </p>
-              <p className="text-xs text-possum-400">{formatDate(meme.created_at)}</p>
+              <p className="text-xs text-themed-muted">{formatDate(meme.created_at)}</p>
               <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => navigate(`/editor/${meme.template_id}/${meme.id}`)}
-                  className="w-8 h-8 bg-possum-600 text-white rounded-full flex items-center justify-center"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                  style={{ backgroundColor: 'var(--color-bg-accent)' }}
                   title="Edit meme"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,7 +130,8 @@ export default function MyMemes() {
                 </button>
                 <button
                   onClick={() => handleDelete(meme.id)}
-                  className="w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                  style={{ backgroundColor: 'var(--color-error)' }}
                   title="Delete meme"
                 >
                   &times;

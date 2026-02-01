@@ -8,15 +8,19 @@ import Editor from './pages/Editor';
 import MyMemes from './pages/MyMemes';
 import Admin from './pages/Admin';
 
+function LoadingSpinner() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-themed-secondary">
+      <div className="animate-spin rounded-full h-12 w-12 border-4 border-themed" style={{ borderTopColor: 'var(--color-bg-accent)' }}></div>
+    </div>
+  );
+}
+
 function ProtectedRoute({ children, requireInvite = true }: { children: React.ReactNode; requireInvite?: boolean }) {
   const { isAuthenticated, inviteRedeemed, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-possum-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-possum-600 border-t-transparent"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!isAuthenticated) {
@@ -34,11 +38,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   const { isAdmin, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-possum-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-possum-600 border-t-transparent"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!isAdmin) {

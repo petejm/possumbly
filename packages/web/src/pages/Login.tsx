@@ -1,9 +1,12 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import ThemeSelector from '../components/ThemeSelector';
 
 export default function Login() {
   const { isAuthenticated, inviteRedeemed, login, loading } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const error = searchParams.get('error');
@@ -20,22 +23,54 @@ export default function Login() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-possum-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-possum-600 border-t-transparent"></div>
+      <div className="min-h-screen flex items-center justify-center bg-themed-secondary">
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-4 border-themed"
+          style={{ borderTopColor: 'var(--color-bg-accent)' }}
+        ></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-possum-100 to-possum-200 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-themed-secondary p-4">
+      {/* Theme toggle in corner */}
+      <div className="fixed top-4 right-4">
+        <div className="bg-themed-card rounded-lg shadow-lg p-1">
+          <ThemeSelector />
+        </div>
+      </div>
+
       <div className="card max-w-md w-full">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-possum-800 mb-2">Possumbly</h1>
-          <p className="text-possum-600">Create and share memes with your friends</p>
+          <div className="flex justify-center mb-4">
+            <svg
+              className="w-16 h-16 text-themed-primary"
+              viewBox="0 0 32 32"
+              fill="currentColor"
+            >
+              <circle cx="16" cy="16" r="12" opacity="0.2" />
+              <circle cx="16" cy="16" r="8" />
+              <circle cx="12" cy="14" r="1.5" className="fill-themed-card" />
+              <circle cx="20" cy="14" r="1.5" className="fill-themed-card" />
+              <ellipse cx="16" cy="18" rx="2" ry="1.5" className="fill-themed-card" />
+              <circle cx="9" cy="9" r="3" />
+              <circle cx="23" cy="9" r="3" />
+            </svg>
+          </div>
+          <h1 className="text-4xl font-bold text-themed-primary mb-2">Possumbly</h1>
+          <p className="text-themed-muted">Create and share memes with your friends</p>
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div
+            className="px-4 py-3 rounded-lg mb-6 border"
+            style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              borderColor: 'var(--color-error)',
+              color: 'var(--color-error)',
+            }}
+          >
             Login failed. Please try again.
           </div>
         )}
@@ -43,7 +78,7 @@ export default function Login() {
         <div className="space-y-4">
           <button
             onClick={() => login('google')}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-possum-300 rounded-lg hover:bg-possum-100 transition-colors"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-themed rounded-lg hover:bg-themed-tertiary transition-colors text-themed-primary"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -68,7 +103,7 @@ export default function Login() {
 
           <button
             onClick={() => login('github')}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-possum-300 rounded-lg hover:bg-possum-100 transition-colors"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-themed rounded-lg hover:bg-themed-tertiary transition-colors text-themed-primary"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
@@ -78,7 +113,7 @@ export default function Login() {
 
           <button
             onClick={() => login('discord')}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-possum-300 rounded-lg hover:bg-possum-100 transition-colors"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-themed rounded-lg hover:bg-themed-tertiary transition-colors text-themed-primary"
           >
             <svg className="w-5 h-5" fill="#5865F2" viewBox="0 0 24 24">
               <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" />
@@ -87,7 +122,7 @@ export default function Login() {
           </button>
         </div>
 
-        <p className="text-center text-possum-500 text-sm mt-8">
+        <p className="text-center text-themed-muted text-sm mt-8">
           You'll need an invite code to access the app after logging in.
         </p>
       </div>

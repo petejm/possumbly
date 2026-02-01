@@ -225,7 +225,10 @@ export default function Editor() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-possum-600 border-t-transparent"></div>
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-4 border-themed"
+          style={{ borderTopColor: 'var(--color-bg-accent)' }}
+        ></div>
       </div>
     );
   }
@@ -233,7 +236,9 @@ export default function Editor() {
   if (!template || !templateImage) {
     return (
       <div className="text-center py-16">
-        <p className="text-red-600 text-lg">{error || 'Template not found'}</p>
+        <p style={{ color: 'var(--color-error)' }} className="text-lg">
+          {error || 'Template not found'}
+        </p>
         <button onClick={() => navigate('/')} className="btn btn-primary mt-4">
           Back to Templates
         </button>
@@ -247,7 +252,7 @@ export default function Editor() {
     <div className="flex flex-col lg:flex-row gap-6">
       {/* Canvas Area */}
       <div className="flex-1">
-        <div ref={containerRef} className="bg-possum-200 rounded-lg p-4 overflow-hidden">
+        <div ref={containerRef} className="bg-themed-tertiary rounded-lg p-4 overflow-hidden">
           <Stage
             ref={stageRef}
             width={stageSize.width}
@@ -257,11 +262,7 @@ export default function Editor() {
             style={{ background: '#000' }}
           >
             <Layer>
-              <KonvaImage
-                image={templateImage}
-                width={stageSize.width}
-                height={stageSize.height}
-              />
+              <KonvaImage image={templateImage} width={stageSize.width} height={stageSize.height} />
               {textBoxes.map((box) => (
                 <Text
                   key={box.id}
@@ -304,7 +305,14 @@ export default function Editor() {
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mt-4">
+          <div
+            className="px-4 py-3 rounded-lg mt-4 border"
+            style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              borderColor: 'var(--color-error)',
+              color: 'var(--color-error)',
+            }}
+          >
             {error}
           </div>
         )}
@@ -328,10 +336,10 @@ export default function Editor() {
       {/* Controls Panel */}
       <div className="w-full lg:w-80">
         <div className="card">
-          <h2 className="text-lg font-bold text-possum-800 mb-4">Text Boxes</h2>
+          <h2 className="text-lg font-bold text-themed-primary mb-4">Text Boxes</h2>
 
           {textBoxes.length === 0 ? (
-            <p className="text-possum-500 text-sm mb-4">
+            <p className="text-themed-muted text-sm mb-4">
               No text boxes yet. Click "Add Text" to get started.
             </p>
           ) : (
@@ -339,12 +347,12 @@ export default function Editor() {
               {textBoxes.map((box, index) => (
                 <div
                   key={box.id}
-                  className={`flex items-center justify-between p-2 rounded cursor-pointer ${
-                    selectedId === box.id ? 'bg-possum-200' : 'hover:bg-possum-100'
+                  className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
+                    selectedId === box.id ? 'bg-themed-tertiary' : 'hover:bg-themed-secondary'
                   }`}
                   onClick={() => setSelectedId(box.id)}
                 >
-                  <span className="text-sm truncate flex-1">
+                  <span className="text-sm truncate flex-1 text-themed-primary">
                     Text {index + 1}: {box.text.substring(0, 20)}
                     {box.text.length > 20 && '...'}
                   </span>
@@ -353,7 +361,8 @@ export default function Editor() {
                       e.stopPropagation();
                       deleteTextBox(box.id);
                     }}
-                    className="text-red-500 hover:text-red-700 ml-2"
+                    className="ml-2 hover:opacity-80 transition-opacity"
+                    style={{ color: 'var(--color-error)' }}
                   >
                     &times;
                   </button>
@@ -363,11 +372,11 @@ export default function Editor() {
           )}
 
           {selectedBox && (
-            <div className="border-t border-possum-200 pt-4 space-y-4">
-              <h3 className="font-medium text-possum-700">Edit Selected Text</h3>
+            <div className="border-t border-themed pt-4 space-y-4">
+              <h3 className="font-medium text-themed-secondary">Edit Selected Text</h3>
 
               <div>
-                <label className="block text-sm font-medium text-possum-700 mb-1">Text</label>
+                <label className="block text-sm font-medium text-themed-secondary mb-1">Text</label>
                 <textarea
                   value={selectedBox.text}
                   onChange={(e) => updateTextBox(selectedBox.id, { text: e.target.value })}
@@ -376,7 +385,7 @@ export default function Editor() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-possum-700 mb-1">Font</label>
+                <label className="block text-sm font-medium text-themed-secondary mb-1">Font</label>
                 <select
                   value={selectedBox.fontFamily}
                   onChange={(e) => updateTextBox(selectedBox.id, { fontFamily: e.target.value })}
@@ -391,7 +400,7 @@ export default function Editor() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-possum-700 mb-1">
+                <label className="block text-sm font-medium text-themed-secondary mb-1">
                   Font Size: {selectedBox.fontSize}px
                 </label>
                 <input
@@ -402,13 +411,14 @@ export default function Editor() {
                   onChange={(e) =>
                     updateTextBox(selectedBox.id, { fontSize: parseInt(e.target.value) })
                   }
-                  className="w-full"
+                  className="w-full accent-current"
+                  style={{ accentColor: 'var(--color-bg-accent)' }}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-possum-700 mb-1">
+                  <label className="block text-sm font-medium text-themed-secondary mb-1">
                     Text Color
                   </label>
                   <input
@@ -419,7 +429,7 @@ export default function Editor() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-possum-700 mb-1">
+                  <label className="block text-sm font-medium text-themed-secondary mb-1">
                     Stroke Color
                   </label>
                   <input
@@ -432,7 +442,7 @@ export default function Editor() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-possum-700 mb-1">
+                <label className="block text-sm font-medium text-themed-secondary mb-1">
                   Stroke Width: {selectedBox.strokeWidth}px
                 </label>
                 <input
@@ -444,21 +454,29 @@ export default function Editor() {
                     updateTextBox(selectedBox.id, { strokeWidth: parseInt(e.target.value) })
                   }
                   className="w-full"
+                  style={{ accentColor: 'var(--color-bg-accent)' }}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-possum-700 mb-1">Alignment</label>
+                <label className="block text-sm font-medium text-themed-secondary mb-1">
+                  Alignment
+                </label>
                 <div className="flex gap-2">
                   {(['left', 'center', 'right'] as const).map((align) => (
                     <button
                       key={align}
                       onClick={() => updateTextBox(selectedBox.id, { align })}
-                      className={`flex-1 py-2 rounded ${
+                      className={`flex-1 py-2 rounded transition-colors ${
                         selectedBox.align === align
-                          ? 'bg-possum-600 text-white'
-                          : 'bg-possum-100 text-possum-700 hover:bg-possum-200'
+                          ? 'text-themed-inverse'
+                          : 'bg-themed-secondary text-themed-primary hover:bg-themed-tertiary'
                       }`}
+                      style={
+                        selectedBox.align === align
+                          ? { backgroundColor: 'var(--color-bg-accent)' }
+                          : {}
+                      }
                     >
                       {align.charAt(0).toUpperCase() + align.slice(1)}
                     </button>

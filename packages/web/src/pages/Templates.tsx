@@ -78,7 +78,10 @@ export default function Templates() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-possum-600 border-t-transparent"></div>
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-4 border-themed"
+          style={{ borderTopColor: 'var(--color-bg-accent)' }}
+        ></div>
       </div>
     );
   }
@@ -86,14 +89,21 @@ export default function Templates() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-possum-800">Templates</h1>
+        <h1 className="text-3xl font-bold text-themed-primary">Templates</h1>
         <button onClick={() => setShowUpload(true)} className="btn btn-primary">
           Upload Template
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div
+          className="px-4 py-3 rounded-lg mb-6 border"
+          style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderColor: 'var(--color-error)',
+            color: 'var(--color-error)',
+          }}
+        >
           {error}
           <button onClick={() => setError('')} className="float-right font-bold">
             &times;
@@ -104,11 +114,11 @@ export default function Templates() {
       {showUpload && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="card max-w-lg w-full">
-            <h2 className="text-xl font-bold text-possum-800 mb-4">Upload Template</h2>
+            <h2 className="text-xl font-bold text-themed-primary mb-4">Upload Template</h2>
             <form onSubmit={handleUpload}>
               <div
-                className={`border-2 border-dashed rounded-lg p-8 text-center mb-4 transition-colors ${
-                  dragOver ? 'border-possum-600 bg-possum-100' : 'border-possum-300'
+                className={`border-2 border-dashed rounded-lg p-8 text-center mb-4 transition-colors cursor-pointer ${
+                  dragOver ? 'border-themed-focus bg-themed-tertiary' : 'border-themed'
                 }`}
                 onDragOver={(e) => {
                   e.preventDefault();
@@ -132,18 +142,25 @@ export default function Templates() {
                       alt="Preview"
                       className="max-h-48 mx-auto mb-2 rounded"
                     />
-                    <p className="text-possum-600">{uploadFile.name}</p>
+                    <p className="text-themed-secondary">{uploadFile.name}</p>
                   </div>
                 ) : (
                   <div>
-                    <p className="text-possum-600 mb-2">Drag and drop an image here, or click to select</p>
-                    <p className="text-possum-400 text-sm">Supports JPEG, PNG, GIF, WebP (max 10MB)</p>
+                    <p className="text-themed-secondary mb-2">
+                      Drag and drop an image here, or click to select
+                    </p>
+                    <p className="text-themed-muted text-sm">
+                      Supports JPEG, PNG, GIF, WebP (max 10MB)
+                    </p>
                   </div>
                 )}
               </div>
 
               <div className="mb-4">
-                <label htmlFor="name" className="block text-sm font-medium text-possum-700 mb-1">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-themed-secondary mb-1"
+                >
                   Template Name
                 </label>
                 <input
@@ -184,7 +201,7 @@ export default function Templates() {
 
       {templateList.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-possum-500 text-lg mb-4">No templates yet</p>
+          <p className="text-themed-muted text-lg mb-4">No templates yet</p>
           <button onClick={() => setShowUpload(true)} className="btn btn-primary">
             Upload your first template
           </button>
@@ -194,7 +211,7 @@ export default function Templates() {
           {templateList.map((template) => (
             <div key={template.id} className="card p-4 group relative">
               <div
-                className="aspect-square bg-possum-100 rounded-lg mb-3 overflow-hidden cursor-pointer"
+                className="aspect-square bg-themed-tertiary rounded-lg mb-3 overflow-hidden cursor-pointer"
                 onClick={() => navigate(`/editor/${template.id}`)}
               >
                 <img
@@ -203,13 +220,14 @@ export default function Templates() {
                   className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                 />
               </div>
-              <h3 className="font-medium text-possum-800 truncate">{template.name}</h3>
-              <p className="text-sm text-possum-500">
+              <h3 className="font-medium text-themed-primary truncate">{template.name}</h3>
+              <p className="text-sm text-themed-muted">
                 {template.width} x {template.height}
               </p>
               <button
                 onClick={() => handleDelete(template.id)}
-                className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                className="absolute top-2 right-2 w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
+                style={{ backgroundColor: 'var(--color-error)' }}
                 title="Delete template"
               >
                 &times;

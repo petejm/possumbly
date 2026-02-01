@@ -39,7 +39,10 @@ export default function Admin() {
     setCreatingInvite(true);
     try {
       const newInvite = await invites.create();
-      setInviteList((prev) => [{ ...newInvite, used_by: null, used_at: null } as InviteCode, ...prev]);
+      setInviteList((prev) => [
+        { ...newInvite, used_by: null, used_at: null } as InviteCode,
+        ...prev,
+      ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create invite');
     } finally {
@@ -84,10 +87,17 @@ export default function Admin() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-possum-800 mb-8">Admin Panel</h1>
+      <h1 className="text-3xl font-bold text-themed-primary mb-8">Admin Panel</h1>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div
+          className="px-4 py-3 rounded-lg mb-6 border"
+          style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderColor: 'var(--color-error)',
+            color: 'var(--color-error)',
+          }}
+        >
           {error}
           <button onClick={() => setError('')} className="float-right font-bold">
             &times;
@@ -95,16 +105,17 @@ export default function Admin() {
         </div>
       )}
 
-      <div className="flex gap-4 mb-6 border-b border-possum-200">
+      <div className="flex gap-4 mb-6 border-b border-themed">
         {(['invites', 'users', 'stats'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px ${
               activeTab === tab
-                ? 'text-possum-800 border-possum-600'
-                : 'text-possum-500 border-transparent hover:text-possum-700'
+                ? 'text-themed-primary border-current'
+                : 'text-themed-muted border-transparent hover:text-themed-secondary'
             }`}
+            style={activeTab === tab ? { borderColor: 'var(--color-bg-accent)' } : {}}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
@@ -113,7 +124,10 @@ export default function Admin() {
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-possum-600 border-t-transparent"></div>
+          <div
+            className="animate-spin rounded-full h-12 w-12 border-4 border-themed"
+            style={{ borderTopColor: 'var(--color-bg-accent)' }}
+          ></div>
         </div>
       ) : (
         <>
@@ -128,36 +142,36 @@ export default function Admin() {
                   {creatingInvite ? 'Creating...' : 'Generate Invite Code'}
                 </button>
               </div>
-              <div className="card overflow-hidden">
+              <div className="card overflow-hidden p-0">
                 <table className="w-full">
-                  <thead className="bg-possum-100">
+                  <thead className="bg-themed-tertiary">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-possum-700">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-themed-secondary">
                         Code
                       </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-possum-700">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-themed-secondary">
                         Created
                       </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-possum-700">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-themed-secondary">
                         Status
                       </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-possum-700">
+                      <th className="px-4 py-3 text-left text-sm font-medium text-themed-secondary">
                         Used By
                       </th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-possum-700">
+                      <th className="px-4 py-3 text-right text-sm font-medium text-themed-secondary">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-possum-100">
+                  <tbody className="divide-y divide-themed">
                     {inviteList.map((invite) => (
                       <tr key={invite.id}>
                         <td className="px-4 py-3">
-                          <code className="bg-possum-100 px-2 py-1 rounded font-mono text-sm">
+                          <code className="bg-themed-tertiary px-2 py-1 rounded font-mono text-sm">
                             {invite.code}
                           </code>
                         </td>
-                        <td className="px-4 py-3 text-sm text-possum-600">
+                        <td className="px-4 py-3 text-sm text-themed-muted">
                           {formatDate(invite.created_at)}
                         </td>
                         <td className="px-4 py-3">
@@ -171,13 +185,13 @@ export default function Admin() {
                             {invite.used_by ? 'Used' : 'Available'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-possum-600">
+                        <td className="px-4 py-3 text-sm text-themed-muted">
                           {invite.used_by_name || '-'}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <button
                             onClick={() => copyToClipboard(invite.code)}
-                            className="text-possum-500 hover:text-possum-700 mr-2"
+                            className="text-themed-muted hover:text-themed-primary mr-2 transition-colors"
                             title="Copy code"
                           >
                             Copy
@@ -185,7 +199,8 @@ export default function Admin() {
                           {!invite.used_by && (
                             <button
                               onClick={() => handleDeleteInvite(invite.id)}
-                              className="text-red-500 hover:text-red-700"
+                              className="hover:opacity-80 transition-opacity"
+                              style={{ color: 'var(--color-error)' }}
                               title="Delete invite"
                             >
                               Delete
@@ -197,58 +212,54 @@ export default function Admin() {
                   </tbody>
                 </table>
                 {inviteList.length === 0 && (
-                  <p className="text-center py-8 text-possum-500">No invite codes yet</p>
+                  <p className="text-center py-8 text-themed-muted">No invite codes yet</p>
                 )}
               </div>
             </div>
           )}
 
           {activeTab === 'users' && (
-            <div className="card overflow-hidden">
+            <div className="card overflow-hidden p-0">
               <table className="w-full">
-                <thead className="bg-possum-100">
+                <thead className="bg-themed-tertiary">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-possum-700">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-themed-secondary">
                       User
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-possum-700">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-themed-secondary">
                       Provider
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-possum-700">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-themed-secondary">
                       Role
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-possum-700">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-themed-secondary">
                       Status
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-possum-700">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-themed-secondary">
                       Joined
                     </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-possum-700">
+                    <th className="px-4 py-3 text-right text-sm font-medium text-themed-secondary">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-possum-100">
+                <tbody className="divide-y divide-themed">
                   {userList.map((user) => (
                     <tr key={user.id}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {user.avatar_url && (
-                            <img
-                              src={user.avatar_url}
-                              alt=""
-                              className="w-8 h-8 rounded-full"
-                            />
+                            <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-full" />
                           )}
                           <div>
-                            <p className="font-medium text-possum-800">
+                            <p className="font-medium text-themed-primary">
                               {user.name || 'Unknown'}
                             </p>
-                            <p className="text-sm text-possum-500">{user.email}</p>
+                            <p className="text-sm text-themed-muted">{user.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm capitalize text-possum-600">
+                      <td className="px-4 py-3 text-sm capitalize text-themed-muted">
                         {user.provider}
                       </td>
                       <td className="px-4 py-3">
@@ -256,7 +267,7 @@ export default function Admin() {
                           className={`inline-block px-2 py-1 text-xs rounded-full ${
                             user.role === 'admin'
                               ? 'bg-purple-100 text-purple-800'
-                              : 'bg-possum-100 text-possum-800'
+                              : 'bg-themed-tertiary text-themed-primary'
                           }`}
                         >
                           {user.role}
@@ -273,13 +284,13 @@ export default function Admin() {
                           {user.invite_redeemed ? 'Active' : 'Pending'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-possum-600">
+                      <td className="px-4 py-3 text-sm text-themed-muted">
                         {formatDate(user.created_at)}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => handleToggleRole(user.id, user.role)}
-                          className="text-possum-500 hover:text-possum-700"
+                          className="text-themed-muted hover:text-themed-primary transition-colors"
                         >
                           {user.role === 'admin' ? 'Demote' : 'Promote'}
                         </button>
@@ -289,7 +300,7 @@ export default function Admin() {
                 </tbody>
               </table>
               {userList.length === 0 && (
-                <p className="text-center py-8 text-possum-500">No users yet</p>
+                <p className="text-center py-8 text-themed-muted">No users yet</p>
               )}
             </div>
           )}
@@ -297,32 +308,40 @@ export default function Admin() {
           {activeTab === 'stats' && stats && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="card">
-                <p className="text-possum-500 text-sm mb-1">Total Users</p>
-                <p className="text-3xl font-bold text-possum-800">{stats.totalUsers}</p>
+                <p className="text-themed-muted text-sm mb-1">Total Users</p>
+                <p className="text-3xl font-bold text-themed-primary">{stats.totalUsers}</p>
               </div>
               <div className="card">
-                <p className="text-possum-500 text-sm mb-1">Active Users</p>
-                <p className="text-3xl font-bold text-green-600">{stats.activeUsers}</p>
+                <p className="text-themed-muted text-sm mb-1">Active Users</p>
+                <p className="text-3xl font-bold" style={{ color: 'var(--color-success)' }}>
+                  {stats.activeUsers}
+                </p>
               </div>
               <div className="card">
-                <p className="text-possum-500 text-sm mb-1">Pending Users</p>
-                <p className="text-3xl font-bold text-yellow-600">{stats.pendingUsers}</p>
+                <p className="text-themed-muted text-sm mb-1">Pending Users</p>
+                <p className="text-3xl font-bold" style={{ color: 'var(--color-warning)' }}>
+                  {stats.pendingUsers}
+                </p>
               </div>
               <div className="card">
-                <p className="text-possum-500 text-sm mb-1">Admin Users</p>
+                <p className="text-themed-muted text-sm mb-1">Admin Users</p>
                 <p className="text-3xl font-bold text-purple-600">{stats.adminUsers}</p>
               </div>
               <div className="card">
-                <p className="text-possum-500 text-sm mb-1">Total Invites</p>
-                <p className="text-3xl font-bold text-possum-800">{stats.totalInvites}</p>
+                <p className="text-themed-muted text-sm mb-1">Total Invites</p>
+                <p className="text-3xl font-bold text-themed-primary">{stats.totalInvites}</p>
               </div>
               <div className="card">
-                <p className="text-possum-500 text-sm mb-1">Used Invites</p>
-                <p className="text-3xl font-bold text-green-600">{stats.usedInvites}</p>
+                <p className="text-themed-muted text-sm mb-1">Used Invites</p>
+                <p className="text-3xl font-bold" style={{ color: 'var(--color-success)' }}>
+                  {stats.usedInvites}
+                </p>
               </div>
               <div className="card">
-                <p className="text-possum-500 text-sm mb-1">Available Invites</p>
-                <p className="text-3xl font-bold text-yellow-600">{stats.availableInvites}</p>
+                <p className="text-themed-muted text-sm mb-1">Available Invites</p>
+                <p className="text-3xl font-bold" style={{ color: 'var(--color-warning)' }}>
+                  {stats.availableInvites}
+                </p>
               </div>
             </div>
           )}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { invites, admin } from '../lib/api';
+import ThemeSelector from '../components/ThemeSelector';
 
 export default function RedeemInvite() {
   const { refreshUser, logout, inviteRedeemed } = useAuth();
@@ -54,22 +55,36 @@ export default function RedeemInvite() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-possum-100 to-possum-200 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-themed-secondary p-4">
+      {/* Theme toggle in corner */}
+      <div className="fixed top-4 right-4">
+        <div className="bg-themed-card rounded-lg shadow-lg p-1">
+          <ThemeSelector />
+        </div>
+      </div>
+
       <div className="card max-w-md w-full">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-possum-800 mb-2">Enter Invite Code</h1>
-          <p className="text-possum-600">You need an invite code to access Possumbly</p>
+          <h1 className="text-3xl font-bold text-themed-primary mb-2">Enter Invite Code</h1>
+          <p className="text-themed-muted">You need an invite code to access Possumbly</p>
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div
+            className="px-4 py-3 rounded-lg mb-6 border"
+            style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              borderColor: 'var(--color-error)',
+              color: 'var(--color-error)',
+            }}
+          >
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="code" className="block text-sm font-medium text-possum-700 mb-1">
+            <label htmlFor="code" className="block text-sm font-medium text-themed-secondary mb-1">
               Invite Code
             </label>
             <input
@@ -89,8 +104,8 @@ export default function RedeemInvite() {
           </button>
         </form>
 
-        <div className="mt-6 pt-6 border-t border-possum-200">
-          <p className="text-center text-possum-500 text-sm mb-4">
+        <div className="mt-6 pt-6 border-t border-themed">
+          <p className="text-center text-themed-muted text-sm mb-4">
             Don't have an invite code? Ask an existing member for one.
           </p>
           <div className="flex gap-4">
