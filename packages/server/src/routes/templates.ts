@@ -4,10 +4,28 @@ import path from 'path';
 import fs from 'fs';
 import sharp from 'sharp';
 import { nanoid } from 'nanoid';
+import rateLimit from 'express-rate-limit';
 import { templateQueries, User } from '../db/schema.js';
 import { hasInvite } from '../middleware/auth.js';
 
 const router = Router();
+
+// SECURITY: Rate limiting for resource-intensive operations
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20, // 20 uploads per hour per IP
+  message: { error: 'Too many uploads. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const deleteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // 30 deletes per 15 minutes per IP
+  message: { error: 'Too many delete requests. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const UPLOADS_PATH = process.env.UPLOADS_PATH || './data/uploads';
 const TEMPLATES_PATH = path.join(UPLOADS_PATH, 'templates');
@@ -118,7 +136,7 @@ router.get('/:id', hasInvite, (req, res) => {
 });
 
 // Upload new template
-router.post('/', hasInvite, upload.single('image'), async (req, res) => {
+router.post('/', hasInvite, uploadLimiter, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No image file provided' });
@@ -185,7 +203,7 @@ router.post('/', hasInvite, upload.single('image'), async (req, res) => {
 });
 
 // Delete template (admin or uploader)
-router.delete('/:id', hasInvite, (req, res) => {
+router.delete('/:id', hasInvite, deleteLimiter, (req, res) => {
   try {
     const { id } = req.params;
     const user = req.user as User;

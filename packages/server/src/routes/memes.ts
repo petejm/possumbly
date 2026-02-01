@@ -3,10 +3,28 @@ import path from 'path';
 import fs from 'fs';
 import sharp from 'sharp';
 import { nanoid } from 'nanoid';
+import rateLimit from 'express-rate-limit';
 import { memeQueries, templateQueries, User } from '../db/schema.js';
 import { hasInvite } from '../middleware/auth.js';
 
 const router = Router();
+
+// SECURITY: Rate limiting for resource-intensive operations
+const renderLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 60, // 60 renders per 15 minutes per IP
+  message: { error: 'Too many render requests. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const deleteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // 30 deletes per 15 minutes per IP
+  message: { error: 'Too many delete requests. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const UPLOADS_PATH = process.env.UPLOADS_PATH || './data/uploads';
 const MEMES_PATH = path.join(UPLOADS_PATH, 'memes');
@@ -212,7 +230,7 @@ router.put('/:id', hasInvite, (req, res) => {
 });
 
 // Save rendered meme image
-router.post('/:id/render', hasInvite, async (req, res) => {
+router.post('/:id/render', hasInvite, renderLimiter, async (req, res) => {
   try {
     const { id } = req.params;
     const user = req.user as User;
@@ -289,7 +307,7 @@ router.post('/:id/render', hasInvite, async (req, res) => {
 });
 
 // Delete meme
-router.delete('/:id', hasInvite, (req, res) => {
+router.delete('/:id', hasInvite, deleteLimiter, (req, res) => {
   try {
     const { id } = req.params;
     const user = req.user as User;

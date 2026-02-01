@@ -81,7 +81,8 @@ router.post('/logout', (req, res, next) => {
       if (err) {
         return next(err);
       }
-      res.clearCookie('connect.sid');
+      // SECURITY: Clear the correct session cookie
+      res.clearCookie('possumbly.sid');
       res.json({ success: true });
     });
   });
