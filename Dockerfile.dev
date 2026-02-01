@@ -1,0 +1,27 @@
+# Development Dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies for native modules
+RUN apk add --no-cache python3 make g++ vips-dev
+
+# Copy package files first for better caching
+COPY package*.json ./
+COPY packages/server/package*.json ./packages/server/
+COPY packages/web/package*.json ./packages/web/
+
+# Install dependencies
+RUN npm install
+
+# Copy source files
+COPY . .
+
+# Create data directory
+RUN mkdir -p /data/uploads/templates /data/uploads/memes
+
+# Expose ports
+EXPOSE 3000 5173
+
+# Start development servers
+CMD ["npm", "run", "dev"]

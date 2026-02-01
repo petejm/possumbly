@@ -1,0 +1,38 @@
+version: '3.8'
+
+# Development docker-compose file
+# Use: docker-compose -f docker-compose.dev.yml up
+
+services:
+  possumbly:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: possumbly-dev
+    ports:
+      - "3000:3000"
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/packages/server/node_modules
+      - /app/packages/web/node_modules
+      - possumbly-data-dev:/data
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - SESSION_SECRET=dev-secret
+      - DATABASE_PATH=/data/possumbly.db
+      - UPLOADS_PATH=/data/uploads
+      - PUBLIC_URL=http://localhost:5173
+      # Add your OAuth credentials here for development
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID:-}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET:-}
+
+volumes:
+  possumbly-data-dev:
+    driver: local
