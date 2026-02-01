@@ -4,7 +4,7 @@ import fs from 'fs';
 import sharp from 'sharp';
 import { nanoid } from 'nanoid';
 import rateLimit from 'express-rate-limit';
-import { memeQueries, templateQueries, User } from '../db/schema.js';
+import { memeQueries, templateQueries, voteQueries, User } from '../db/schema.js';
 import { hasInvite } from '../middleware/auth.js';
 
 const router = Router();
@@ -97,11 +97,15 @@ router.get('/', hasInvite, (req, res) => {
 
     const enrichedMemes = memes.map((meme) => {
       const template = templateQueries.findById(meme.template_id);
+      const { upvotes, downvotes, score } = voteQueries.getVoteCounts(meme.id);
       return {
         ...meme,
         editor_state: JSON.parse(meme.editor_state),
         template_name: template?.name || null,
         template_filename: template?.filename || null,
+        upvotes,
+        downvotes,
+        score,
       };
     });
 
@@ -306,6 +310,49 @@ router.post('/:id/render', hasInvite, renderLimiter, async (req, res) => {
   }
 });
 
+// Toggle meme visibility (public/private)
+router.patch('/:id/visibility', hasInvite, (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = req.user as User;
+    const { is_public } = req.body;
+
+    if (!isValidId(id)) {
+      return res.status(400).json({ error: 'Invalid meme ID' });
+    }
+
+    if (typeof is_public !== 'boolean') {
+      return res.status(400).json({ error: 'is_public must be a boolean' });
+    }
+
+    const meme = memeQueries.findById(id);
+
+    if (!meme) {
+      return res.status(404).json({ error: 'Meme not found' });
+    }
+
+    if (meme.created_by !== user.id && user.role !== 'admin') {
+      return res.status(403).json({ error: 'Not authorized to update this meme' });
+    }
+
+    memeQueries.setPublic(id, is_public);
+
+    const updatedMeme = memeQueries.findById(id);
+    const { upvotes, downvotes, score } = voteQueries.getVoteCounts(id);
+
+    res.json({
+      ...updatedMeme,
+      editor_state: JSON.parse(updatedMeme!.editor_state),
+      upvotes,
+      downvotes,
+      score,
+    });
+  } catch (err) {
+    console.error('Error updating meme visibility:', err);
+    res.status(500).json({ error: 'Failed to update meme visibility' });
+  }
+});
+
 // Delete meme
 router.delete('/:id', hasInvite, deleteLimiter, (req, res) => {
   try {
@@ -333,6 +380,9 @@ router.delete('/:id', hasInvite, deleteLimiter, (req, res) => {
         fs.unlinkSync(filePath);
       }
     }
+
+    // Delete associated votes
+    voteQueries.deleteByMeme(id);
 
     memeQueries.delete(id);
 

@@ -6,6 +6,7 @@ import RedeemInvite from './pages/RedeemInvite';
 import Templates from './pages/Templates';
 import Editor from './pages/Editor';
 import MyMemes from './pages/MyMemes';
+import Gallery from './pages/Gallery';
 import Admin from './pages/Admin';
 
 function LoadingSpinner() {
@@ -69,6 +70,7 @@ export default function App() {
         }
       >
         <Route index element={<Templates />} />
+        <Route path="gallery" element={<Gallery />} />
         <Route path="editor/:templateId" element={<Editor />} />
         <Route path="editor/:templateId/:memeId" element={<Editor />} />
         <Route path="my-memes" element={<MyMemes />} />

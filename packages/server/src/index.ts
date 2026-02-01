@@ -22,6 +22,8 @@ import inviteRoutes from './routes/invites.js';
 import templateRoutes from './routes/templates.js';
 import memeRoutes from './routes/memes.js';
 import adminRoutes from './routes/admin.js';
+import voteRoutes from './routes/votes.js';
+import galleryRoutes from './routes/gallery.js';
 import { isAuthenticated } from './middleware/auth.js';
 
 const PORT = process.env.PORT || 3000;
@@ -154,6 +156,8 @@ async function main() {
   app.use('/api/templates', templateRoutes);
   app.use('/api/memes', memeRoutes);
   app.use('/api/admin', adminRoutes);
+  app.use('/api/votes', voteRoutes);
+  app.use('/api/gallery', galleryRoutes);
 
   // Health check endpoint
   app.get('/health', (_req, res) => {

@@ -40,6 +40,12 @@ export default function Layout() {
                   Templates
                 </Link>
                 <Link
+                  to="/gallery"
+                  className={`transition-colors ${isActive('/gallery') ? 'text-themed-header font-medium' : 'text-themed-header-muted hover:text-themed-header'}`}
+                >
+                  Gallery
+                </Link>
+                <Link
                   to="/my-memes"
                   className={`transition-colors ${isActive('/my-memes') ? 'text-themed-header font-medium' : 'text-themed-header-muted hover:text-themed-header'}`}
                 >
@@ -96,6 +102,16 @@ export default function Layout() {
             }`}
           >
             Templates
+          </Link>
+          <Link
+            to="/gallery"
+            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+              isActive('/gallery')
+                ? 'bg-themed-accent text-themed-inverse'
+                : 'text-themed-secondary hover:bg-themed-secondary'
+            }`}
+          >
+            Gallery
           </Link>
           <Link
             to="/my-memes"

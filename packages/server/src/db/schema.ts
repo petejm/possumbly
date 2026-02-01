@@ -89,9 +89,27 @@ export async function initializeDatabase(): Promise<SqlJsDatabase> {
       created_by TEXT REFERENCES users(id),
       editor_state TEXT NOT NULL,
       output_filename TEXT,
+      is_public INTEGER DEFAULT 0,
       created_at INTEGER NOT NULL
     );
+
+    -- Votes for memes
+    CREATE TABLE IF NOT EXISTS votes (
+      id TEXT PRIMARY KEY,
+      meme_id TEXT NOT NULL REFERENCES memes(id) ON DELETE CASCADE,
+      user_id TEXT NOT NULL REFERENCES users(id),
+      vote_type INTEGER NOT NULL,
+      created_at INTEGER NOT NULL,
+      UNIQUE(meme_id, user_id)
+    );
   `);
+
+  // Migration: Add is_public column if it doesn't exist (must run before indexes)
+  try {
+    db.exec('SELECT is_public FROM memes LIMIT 1');
+  } catch {
+    db.run('ALTER TABLE memes ADD COLUMN is_public INTEGER DEFAULT 0');
+  }
 
   // Create indexes
   db.run(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`);
@@ -100,6 +118,10 @@ export async function initializeDatabase(): Promise<SqlJsDatabase> {
   db.run(`CREATE INDEX IF NOT EXISTS idx_templates_uploaded_by ON templates(uploaded_by)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_memes_created_by ON memes(created_by)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_memes_template_id ON memes(template_id)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_memes_is_public ON memes(is_public)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_votes_meme_id ON votes(meme_id)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_votes_user_id ON votes(user_id)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_votes_created_at ON votes(created_at)`)
 
   saveDatabase();
   console.log('Database initialized');
@@ -155,6 +177,15 @@ export interface Meme {
   created_by: string | null;
   editor_state: string;
   output_filename: string | null;
+  is_public: number;
+  created_at: number;
+}
+
+export interface Vote {
+  id: string;
+  meme_id: string;
+  user_id: string;
+  vote_type: number; // 1 = upvote, -1 = downvote
   created_at: number;
 }
 
@@ -323,6 +354,10 @@ export const memeQueries = {
     ]);
     save();
   },
+  setPublic: (id: string, isPublic: boolean) => {
+    getDb().run('UPDATE memes SET is_public = ? WHERE id = ?', [isPublic ? 1 : 0, id]);
+    save();
+  },
   delete: (id: string) => {
     getDb().run('DELETE FROM memes WHERE id = ?', [id]);
     save();
@@ -330,5 +365,64 @@ export const memeQueries = {
   getAll: (): Meme[] => {
     const result = getDb().exec('SELECT * FROM memes ORDER BY created_at DESC');
     return resultToArray<Meme>(result);
+  },
+  getPublic: (): Meme[] => {
+    const result = getDb().exec('SELECT * FROM memes WHERE is_public = 1 ORDER BY created_at DESC');
+    return resultToArray<Meme>(result);
+  },
+};
+
+// Vote queries
+export const voteQueries = {
+  findById: (id: string): Vote | undefined => {
+    const result = getDb().exec('SELECT * FROM votes WHERE id = ?', [id]);
+    return resultToSingle<Vote>(result);
+  },
+  findByMemeAndUser: (memeId: string, userId: string): Vote | undefined => {
+    const result = getDb().exec('SELECT * FROM votes WHERE meme_id = ? AND user_id = ?', [
+      memeId,
+      userId,
+    ]);
+    return resultToSingle<Vote>(result);
+  },
+  findByMeme: (memeId: string): Vote[] => {
+    const result = getDb().exec('SELECT * FROM votes WHERE meme_id = ?', [memeId]);
+    return resultToArray<Vote>(result);
+  },
+  getVoteCounts: (memeId: string): { upvotes: number; downvotes: number; score: number } => {
+    const upResult = getDb().exec(
+      'SELECT COUNT(*) as count FROM votes WHERE meme_id = ? AND vote_type = 1',
+      [memeId]
+    );
+    const downResult = getDb().exec(
+      'SELECT COUNT(*) as count FROM votes WHERE meme_id = ? AND vote_type = -1',
+      [memeId]
+    );
+    const upvotes = upResult.length && upResult[0].values.length ? (upResult[0].values[0][0] as number) : 0;
+    const downvotes = downResult.length && downResult[0].values.length ? (downResult[0].values[0][0] as number) : 0;
+    return { upvotes, downvotes, score: upvotes - downvotes };
+  },
+  create: (id: string, memeId: string, userId: string, voteType: number, createdAt: number) => {
+    getDb().run(
+      'INSERT INTO votes (id, meme_id, user_id, vote_type, created_at) VALUES (?, ?, ?, ?, ?)',
+      [id, memeId, userId, voteType, createdAt]
+    );
+    save();
+  },
+  update: (voteType: number, memeId: string, userId: string) => {
+    getDb().run('UPDATE votes SET vote_type = ? WHERE meme_id = ? AND user_id = ?', [
+      voteType,
+      memeId,
+      userId,
+    ]);
+    save();
+  },
+  delete: (memeId: string, userId: string) => {
+    getDb().run('DELETE FROM votes WHERE meme_id = ? AND user_id = ?', [memeId, userId]);
+    save();
+  },
+  deleteByMeme: (memeId: string) => {
+    getDb().run('DELETE FROM votes WHERE meme_id = ?', [memeId]);
+    save();
   },
 };

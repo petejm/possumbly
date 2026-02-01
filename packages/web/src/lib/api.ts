@@ -58,11 +58,51 @@ export interface Meme {
   created_by: string | null;
   editor_state: EditorState;
   output_filename: string | null;
+  is_public?: number;
   created_at: number;
   template_name?: string | null;
   template_filename?: string | null;
   template_width?: number | null;
   template_height?: number | null;
+  upvotes?: number;
+  downvotes?: number;
+  score?: number;
+}
+
+export interface VoteResponse {
+  upvotes: number;
+  downvotes: number;
+  score: number;
+  userVote: number | null;
+}
+
+export interface GalleryMeme {
+  id: string;
+  template_id: string;
+  created_by: string | null;
+  output_filename: string | null;
+  is_public: number;
+  created_at: number;
+  template_name: string | null;
+  template_filename: string | null;
+  creator_name: string | null;
+  creator_avatar: string | null;
+  upvotes: number;
+  downvotes: number;
+  score: number;
+  userVote: number | null;
+}
+
+export interface GalleryResponse {
+  memes: GalleryMeme[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
 }
 
 export interface InviteCode {
@@ -184,7 +224,56 @@ export const memes = {
       credentials: 'include',
     }).then(handleResponse<{ success: boolean }>),
 
+  setVisibility: (id: string, isPublic: boolean) =>
+    fetch(`${API_BASE}/api/memes/${id}/visibility`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ is_public: isPublic }),
+    }).then(handleResponse<Meme>),
+
   imageUrl: (filename: string) => `${API_BASE}/uploads/memes/${filename}`,
+};
+
+// Votes API
+export const votes = {
+  get: (memeId: string) =>
+    fetch(`${API_BASE}/api/votes/${memeId}`, { credentials: 'include' }).then(handleResponse<VoteResponse>),
+
+  cast: (memeId: string, vote: 1 | -1) =>
+    fetch(`${API_BASE}/api/votes/${memeId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ vote }),
+    }).then(handleResponse<VoteResponse>),
+
+  remove: (memeId: string) =>
+    fetch(`${API_BASE}/api/votes/${memeId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    }).then(handleResponse<VoteResponse>),
+};
+
+// Gallery API
+export const gallery = {
+  list: (params?: {
+    period?: '7d' | '30d' | 'year' | 'all';
+    sort?: 'hot' | 'top' | 'new';
+    page?: number;
+    limit?: number;
+  }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.period) searchParams.set('period', params.period);
+    if (params?.sort) searchParams.set('sort', params.sort);
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    const queryString = searchParams.toString();
+    const url = queryString
+      ? `${API_BASE}/api/gallery?${queryString}`
+      : `${API_BASE}/api/gallery`;
+    return fetch(url, { credentials: 'include' }).then(handleResponse<GalleryResponse>);
+  },
 };
 
 // Admin API
