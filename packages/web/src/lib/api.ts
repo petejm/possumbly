@@ -16,6 +16,7 @@ export interface User {
   provider: 'google' | 'github' | 'discord';
   role: 'admin' | 'user';
   invite_redeemed: boolean;
+  created_at: number;
 }
 
 export interface AuthStatus {

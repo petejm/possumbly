@@ -86,7 +86,7 @@ export function configurePassport() {
         (
           _accessToken: string,
           _refreshToken: string,
-          profile: GitHubStrategy.Profile,
+          profile: { id: string; displayName?: string; username?: string; emails?: Array<{ value: string }>; photos?: Array<{ value: string }> },
           done: (error: Error | null, user?: User) => void
         ) => {
           try {

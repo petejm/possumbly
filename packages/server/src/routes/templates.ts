@@ -40,11 +40,6 @@ if (!fs.existsSync(TEMPLATES_PATH)) {
   fs.mkdirSync(TEMPLATES_PATH, { recursive: true });
 }
 
-// SECURITY: Sanitize filename - only allow safe characters
-function sanitizeFilename(name: string): string {
-  return name.replace(/[^a-zA-Z0-9_-]/g, '');
-}
-
 // SECURITY: Sanitize template name - escape HTML entities
 function sanitizeName(name: string): string {
   return name

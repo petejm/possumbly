@@ -4,6 +4,7 @@ import { accessAudit } from '../lib/audit.js';
 
 // Extend Express Request to include user
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface User extends Omit<import('../db/schema.js').User, 'provider'> {
       provider: 'google' | 'github' | 'discord';

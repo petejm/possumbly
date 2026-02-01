@@ -1,3 +1,4 @@
+// @ts-expect-error sql.js types are incomplete
 import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
 import path from 'path';
 import fs from 'fs';
@@ -246,9 +247,9 @@ export type AuditAction =
 function resultToArray<T>(result: initSqlJs.QueryExecResult[]): T[] {
   if (!result.length || !result[0].values.length) return [];
   const columns = result[0].columns;
-  return result[0].values.map((row) => {
+  return result[0].values.map((row: unknown[]) => {
     const obj: Record<string, unknown> = {};
-    columns.forEach((col, i) => {
+    columns.forEach((col: string, i: number) => {
       obj[col] = row[i];
     });
     return obj as T;

@@ -1,12 +1,10 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 import ThemeSelector from '../components/ThemeSelector';
 
 export default function Login() {
   const { isAuthenticated, inviteRedeemed, login, loading } = useAuth();
-  const { theme } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const error = searchParams.get('error');
