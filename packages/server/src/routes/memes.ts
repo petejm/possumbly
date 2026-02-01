@@ -89,6 +89,20 @@ function isValidId(id: string): boolean {
   return /^[a-zA-Z0-9_-]+$/.test(id);
 }
 
+// SECURITY: Safe JSON parsing with fallback
+function safeParseEditorState(jsonString: string): Record<string, unknown> {
+  try {
+    const parsed = JSON.parse(jsonString);
+    if (typeof parsed === 'object' && parsed !== null) {
+      return parsed;
+    }
+    return { textBoxes: [] };
+  } catch {
+    console.error('Failed to parse editor state, using empty state');
+    return { textBoxes: [] };
+  }
+}
+
 // Get all memes for current user
 router.get('/', hasInvite, (req, res) => {
   try {
@@ -100,7 +114,7 @@ router.get('/', hasInvite, (req, res) => {
       const { upvotes, downvotes, score } = voteQueries.getVoteCounts(meme.id);
       return {
         ...meme,
-        editor_state: JSON.parse(meme.editor_state),
+        editor_state: safeParseEditorState(meme.editor_state),
         template_name: template?.name || null,
         template_filename: template?.filename || null,
         upvotes,
@@ -140,7 +154,7 @@ router.get('/:id', hasInvite, (req, res) => {
 
     res.json({
       ...meme,
-      editor_state: JSON.parse(meme.editor_state),
+      editor_state: safeParseEditorState(meme.editor_state),
       template_name: template?.name || null,
       template_filename: template?.filename || null,
       template_width: template?.width || null,
@@ -185,7 +199,7 @@ router.post('/', hasInvite, (req, res) => {
     const meme = memeQueries.findById(id);
     res.status(201).json({
       ...meme,
-      editor_state: JSON.parse(meme!.editor_state),
+      editor_state: safeParseEditorState(meme!.editor_state),
     });
   } catch (err) {
     console.error('Error creating meme:', err);
@@ -225,7 +239,7 @@ router.put('/:id', hasInvite, (req, res) => {
     const updatedMeme = memeQueries.findById(id);
     res.json({
       ...updatedMeme,
-      editor_state: JSON.parse(updatedMeme!.editor_state),
+      editor_state: safeParseEditorState(updatedMeme!.editor_state),
     });
   } catch (err) {
     console.error('Error updating meme:', err);
@@ -342,7 +356,7 @@ router.patch('/:id/visibility', hasInvite, (req, res) => {
 
     res.json({
       ...updatedMeme,
-      editor_state: JSON.parse(updatedMeme!.editor_state),
+      editor_state: safeParseEditorState(updatedMeme!.editor_state),
       upvotes,
       downvotes,
       score,

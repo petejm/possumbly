@@ -12,11 +12,13 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - SESSION_SECRET=${SESSION_SECRET:-change-this-to-a-random-string}
+      # REQUIRED: Generate with: openssl rand -base64 32
+      - SESSION_SECRET=${SESSION_SECRET:?SESSION_SECRET is required}
       - DATABASE_PATH=/data/possumbly.db
       - UPLOADS_PATH=/data/uploads
-      - PUBLIC_URL=${PUBLIC_URL:-http://localhost:3000}
-      # OAuth providers (optional - configure as needed)
+      # REQUIRED: Your public URL (for OAuth callbacks)
+      - PUBLIC_URL=${PUBLIC_URL:?PUBLIC_URL is required}
+      # OAuth providers (at least one required)
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
@@ -29,6 +31,19 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   possumbly-data:

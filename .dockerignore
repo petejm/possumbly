@@ -1,0 +1,53 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs (rebuilt in container)
+dist
+**/dist
+
+# Environment files (never include secrets)
+.env
+.env.*
+*.env
+
+# Git
+.git
+.gitignore
+
+# IDE and editors
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Data directories (mounted as volumes)
+data
+packages/server/data
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage
+.nyc_output
+
+# Documentation (not needed in container)
+*.md
+!packages/*/README.md
+
+# Development files
+Dockerfile.dev
+docker-compose.dev.yml
+scripts
+
+# Misc
+*.tgz
+*.tar.gz
+.npmrc

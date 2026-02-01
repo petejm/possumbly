@@ -30,6 +30,10 @@ WORKDIR /app
 # Install runtime dependencies for sharp
 RUN apk add --no-cache vips-dev
 
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
 # Copy package files for production install
 COPY package*.json ./
 COPY packages/server/package*.json ./packages/server/
@@ -41,8 +45,13 @@ RUN npm install --workspace=@possumbly/server --omit=dev
 COPY --from=builder /app/packages/server/dist ./packages/server/dist
 COPY --from=builder /app/packages/web/dist ./packages/web/dist
 
-# Create data directory
-RUN mkdir -p /data/uploads/templates /data/uploads/memes
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Create data directory with proper ownership
+RUN mkdir -p /data/uploads/templates /data/uploads/memes && \
+    chown -R nodejs:nodejs /data /app
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -50,12 +59,16 @@ ENV PORT=3000
 ENV DATABASE_PATH=/data/possumbly.db
 ENV UPLOADS_PATH=/data/uploads
 
+# Switch to non-root user
+USER nodejs
+
 # Expose port
 EXPOSE 3000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Start the server
+# Start the server with entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["node", "packages/server/dist/index.js"]

@@ -24,7 +24,7 @@ import memeRoutes from './routes/memes.js';
 import adminRoutes from './routes/admin.js';
 import voteRoutes from './routes/votes.js';
 import galleryRoutes from './routes/gallery.js';
-import { isAuthenticated } from './middleware/auth.js';
+import { isAuthenticated, csrfProtection } from './middleware/auth.js';
 
 const PORT = process.env.PORT || 3000;
 const SESSION_SECRET = process.env.SESSION_SECRET;
@@ -115,6 +115,9 @@ async function main() {
   // Body parsing with size limits
   app.use(express.json({ limit: '10mb' })); // Reduced from 50mb
   app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+  // SECURITY: CSRF protection for API routes
+  app.use('/api', csrfProtection);
 
   // Session configuration with memory store
   const MemoryStore = createMemoryStore(session);
