@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { userQueries, inviteQueries, User } from '../db/schema.js';
 import { isAdmin } from '../middleware/auth.js';
+import { userAudit, adminAudit } from '../lib/audit.js';
 
 const router = Router();
 
@@ -60,7 +61,9 @@ router.patch('/users/:id/role', isAdmin, (req, res) => {
       return res.status(400).json({ error: 'Cannot demote yourself' });
     }
 
+    const oldRole = user.role;
     userQueries.setRole(role, id);
+    userAudit.roleChanged(req, id, oldRole, role);
 
     res.json({ success: true });
   } catch (err) {
@@ -110,6 +113,7 @@ router.post('/bootstrap', (req, res) => {
     const user = req.user as User;
     userQueries.setRole('admin', user.id);
     userQueries.updateInviteRedeemed(user.id);
+    adminAudit.bootstrap(req, user.id);
 
     res.json({ success: true, message: 'You are now an admin' });
   } catch (err) {

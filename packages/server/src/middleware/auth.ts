@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { User } from '../db/schema.js';
+import { accessAudit } from '../lib/audit.js';
 
 // Extend Express Request to include user
 declare global {
@@ -73,12 +74,14 @@ export function isAuthenticated(req: Request, res: Response, next: NextFunction)
   if (req.isAuthenticated()) {
     return next();
   }
+  accessAudit.denied(req, req.path, 'not_authenticated');
   res.status(401).json({ error: 'Unauthorized' });
 }
 
 // Check if user has redeemed an invite code
 export function hasInvite(req: Request, res: Response, next: NextFunction) {
   if (!req.isAuthenticated()) {
+    accessAudit.denied(req, req.path, 'not_authenticated');
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -87,12 +90,14 @@ export function hasInvite(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
+  accessAudit.denied(req, req.path, 'invite_not_redeemed');
   res.status(403).json({ error: 'Invite code required', code: 'INVITE_REQUIRED' });
 }
 
 // Check if user is an admin
 export function isAdmin(req: Request, res: Response, next: NextFunction) {
   if (!req.isAuthenticated()) {
+    accessAudit.denied(req, req.path, 'not_authenticated');
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -101,5 +106,6 @@ export function isAdmin(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
+  accessAudit.denied(req, req.path, 'not_admin');
   res.status(403).json({ error: 'Admin access required' });
 }

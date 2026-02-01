@@ -102,6 +102,20 @@ export async function initializeDatabase(): Promise<SqlJsDatabase> {
       created_at INTEGER NOT NULL,
       UNIQUE(meme_id, user_id)
     );
+
+    -- Audit logs for security events
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id TEXT PRIMARY KEY,
+      timestamp INTEGER NOT NULL,
+      user_id TEXT,
+      action TEXT NOT NULL,
+      resource_type TEXT,
+      resource_id TEXT,
+      details TEXT,
+      ip_address TEXT,
+      user_agent TEXT,
+      success INTEGER NOT NULL DEFAULT 1
+    );
   `);
 
   // Migration: Add is_public column if it doesn't exist (must run before indexes)
@@ -121,7 +135,11 @@ export async function initializeDatabase(): Promise<SqlJsDatabase> {
   db.run(`CREATE INDEX IF NOT EXISTS idx_memes_is_public ON memes(is_public)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_votes_meme_id ON votes(meme_id)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_votes_user_id ON votes(user_id)`);
-  db.run(`CREATE INDEX IF NOT EXISTS idx_votes_created_at ON votes(created_at)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_votes_created_at ON votes(created_at)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_resource ON audit_logs(resource_type, resource_id)`)
 
   saveDatabase();
   console.log('Database initialized');
@@ -188,6 +206,41 @@ export interface Vote {
   vote_type: number; // 1 = upvote, -1 = downvote
   created_at: number;
 }
+
+export interface AuditLog {
+  id: string;
+  timestamp: number;
+  user_id: string | null;
+  action: string;
+  resource_type: string | null;
+  resource_id: string | null;
+  details: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  success: number;
+}
+
+// Audit action types
+export type AuditAction =
+  | 'auth.login'
+  | 'auth.logout'
+  | 'auth.login_failed'
+  | 'user.created'
+  | 'user.role_changed'
+  | 'user.invite_redeemed'
+  | 'invite.created'
+  | 'invite.deleted'
+  | 'invite.redeem_failed'
+  | 'template.created'
+  | 'template.deleted'
+  | 'meme.created'
+  | 'meme.updated'
+  | 'meme.deleted'
+  | 'meme.visibility_changed'
+  | 'vote.cast'
+  | 'vote.removed'
+  | 'admin.bootstrap'
+  | 'access.denied';
 
 // Helper to convert sql.js result to typed array
 function resultToArray<T>(result: initSqlJs.QueryExecResult[]): T[] {
@@ -423,6 +476,100 @@ export const voteQueries = {
   },
   deleteByMeme: (memeId: string) => {
     getDb().run('DELETE FROM votes WHERE meme_id = ?', [memeId]);
+    save();
+  },
+};
+
+// Audit log queries
+export const auditQueries = {
+  create: (
+    id: string,
+    action: AuditAction,
+    options: {
+      userId?: string | null;
+      resourceType?: string | null;
+      resourceId?: string | null;
+      details?: Record<string, unknown> | null;
+      ipAddress?: string | null;
+      userAgent?: string | null;
+      success?: boolean;
+    } = {}
+  ) => {
+    const {
+      userId = null,
+      resourceType = null,
+      resourceId = null,
+      details = null,
+      ipAddress = null,
+      userAgent = null,
+      success = true,
+    } = options;
+
+    getDb().run(
+      `INSERT INTO audit_logs (id, timestamp, user_id, action, resource_type, resource_id, details, ip_address, user_agent, success)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        Date.now(),
+        userId,
+        action,
+        resourceType,
+        resourceId,
+        details ? JSON.stringify(details) : null,
+        ipAddress,
+        userAgent,
+        success ? 1 : 0,
+      ]
+    );
+    // Don't save immediately - let the periodic save handle it for performance
+  },
+
+  findByUser: (userId: string, limit = 100): AuditLog[] => {
+    const result = getDb().exec(
+      'SELECT * FROM audit_logs WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?',
+      [userId, limit]
+    );
+    return resultToArray<AuditLog>(result);
+  },
+
+  findByAction: (action: string, limit = 100): AuditLog[] => {
+    const result = getDb().exec(
+      'SELECT * FROM audit_logs WHERE action = ? ORDER BY timestamp DESC LIMIT ?',
+      [action, limit]
+    );
+    return resultToArray<AuditLog>(result);
+  },
+
+  findByResource: (resourceType: string, resourceId: string, limit = 100): AuditLog[] => {
+    const result = getDb().exec(
+      'SELECT * FROM audit_logs WHERE resource_type = ? AND resource_id = ? ORDER BY timestamp DESC LIMIT ?',
+      [resourceType, resourceId, limit]
+    );
+    return resultToArray<AuditLog>(result);
+  },
+
+  getRecent: (limit = 100): AuditLog[] => {
+    const result = getDb().exec(
+      'SELECT * FROM audit_logs ORDER BY timestamp DESC LIMIT ?',
+      [limit]
+    );
+    return resultToArray<AuditLog>(result);
+  },
+
+  getSecurityEvents: (limit = 100): AuditLog[] => {
+    const result = getDb().exec(
+      `SELECT * FROM audit_logs
+       WHERE action IN ('auth.login', 'auth.logout', 'auth.login_failed', 'user.role_changed', 'admin.bootstrap', 'access.denied')
+       ORDER BY timestamp DESC LIMIT ?`,
+      [limit]
+    );
+    return resultToArray<AuditLog>(result);
+  },
+
+  // Cleanup old logs (keep last 30 days by default)
+  cleanup: (olderThanMs = 30 * 24 * 60 * 60 * 1000) => {
+    const cutoff = Date.now() - olderThanMs;
+    getDb().run('DELETE FROM audit_logs WHERE timestamp < ?', [cutoff]);
     save();
   },
 };

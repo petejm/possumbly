@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid';
 import crypto from 'crypto';
 import { inviteQueries, userQueries, User } from '../db/schema.js';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
+import { inviteAudit, userAudit } from '../lib/audit.js';
 
 const router = Router();
 
@@ -30,6 +31,7 @@ router.post('/', isAdmin, (req, res) => {
     const now = Date.now();
 
     inviteQueries.create(id, code, user.id, now);
+    inviteAudit.created(req, id);
 
     res.status(201).json({
       id,
@@ -94,6 +96,7 @@ router.post('/redeem', isAuthenticated, (req, res) => {
 
     // SECURITY: Use constant-time comparison and same error for not found vs already used
     if (!invite || invite.used_by) {
+      inviteAudit.redeemFailed(req, 'invalid_or_used');
       return res.status(400).json({ error: 'Invalid invite code' });
     }
 
@@ -101,6 +104,7 @@ router.post('/redeem', isAuthenticated, (req, res) => {
     const now = Date.now();
     inviteQueries.redeem(user.id, now, normalizedCode);
     userQueries.updateInviteRedeemed(user.id);
+    userAudit.inviteRedeemed(req, normalizedCode);
 
     res.json({ success: true, message: 'Invite code redeemed successfully' });
   } catch (err) {
@@ -130,6 +134,7 @@ router.delete('/:id', isAdmin, (req, res) => {
     }
 
     inviteQueries.delete(id);
+    inviteAudit.deleted(req, id);
     res.json({ success: true });
   } catch (err) {
     console.error('Error deleting invite code:', err);

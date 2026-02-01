@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid';
 import rateLimit from 'express-rate-limit';
 import { memeQueries, voteQueries, User } from '../db/schema.js';
 import { hasInvite } from '../middleware/auth.js';
+import { voteAudit } from '../lib/audit.js';
 
 const router = Router();
 
@@ -92,10 +93,12 @@ router.post('/:memeId', hasInvite, voteLimiter, (req, res) => {
         return res.json({ upvotes, downvotes, score, userVote: vote });
       }
       voteQueries.update(vote, memeId, user.id);
+      voteAudit.cast(req, memeId, vote);
     } else {
       // Create new vote
       const id = nanoid();
       voteQueries.create(id, memeId, user.id, vote, Date.now());
+      voteAudit.cast(req, memeId, vote);
     }
 
     const { upvotes, downvotes, score } = voteQueries.getVoteCounts(memeId);
@@ -123,6 +126,7 @@ router.delete('/:memeId', hasInvite, voteLimiter, (req, res) => {
 
     // Delete the vote if it exists
     voteQueries.delete(memeId, user.id);
+    voteAudit.removed(req, memeId);
 
     const { upvotes, downvotes, score } = voteQueries.getVoteCounts(memeId);
     res.json({ upvotes, downvotes, score, userVote: null });

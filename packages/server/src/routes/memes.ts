@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid';
 import rateLimit from 'express-rate-limit';
 import { memeQueries, templateQueries, voteQueries, User } from '../db/schema.js';
 import { hasInvite } from '../middleware/auth.js';
+import { memeAudit } from '../lib/audit.js';
 
 const router = Router();
 
@@ -195,6 +196,7 @@ router.post('/', hasInvite, (req, res) => {
     const now = Date.now();
 
     memeQueries.create(id, template_id, user.id, JSON.stringify(editor_state), null, now);
+    memeAudit.created(req, id, template_id);
 
     const meme = memeQueries.findById(id);
     res.status(201).json({
@@ -235,6 +237,7 @@ router.put('/:id', hasInvite, (req, res) => {
     }
 
     memeQueries.update(JSON.stringify(editor_state), meme.output_filename, id);
+    memeAudit.updated(req, id);
 
     const updatedMeme = memeQueries.findById(id);
     res.json({
@@ -350,6 +353,7 @@ router.patch('/:id/visibility', hasInvite, (req, res) => {
     }
 
     memeQueries.setPublic(id, is_public);
+    memeAudit.visibilityChanged(req, id, is_public);
 
     const updatedMeme = memeQueries.findById(id);
     const { upvotes, downvotes, score } = voteQueries.getVoteCounts(id);
@@ -399,6 +403,7 @@ router.delete('/:id', hasInvite, deleteLimiter, (req, res) => {
     voteQueries.deleteByMeme(id);
 
     memeQueries.delete(id);
+    memeAudit.deleted(req, id);
 
     res.json({ success: true });
   } catch (err) {

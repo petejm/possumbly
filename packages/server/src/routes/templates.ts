@@ -7,6 +7,7 @@ import { nanoid } from 'nanoid';
 import rateLimit from 'express-rate-limit';
 import { templateQueries, User } from '../db/schema.js';
 import { hasInvite } from '../middleware/auth.js';
+import { templateAudit } from '../lib/audit.js';
 
 const router = Router();
 
@@ -190,6 +191,7 @@ router.post('/', hasInvite, uploadLimiter, upload.single('image'), async (req, r
       user.id,
       now
     );
+    templateAudit.created(req, id, sanitizedName);
 
     const template = templateQueries.findById(id);
     res.status(201).json(template);
@@ -238,6 +240,7 @@ router.delete('/:id', hasInvite, deleteLimiter, (req, res) => {
 
     // Delete from database
     templateQueries.delete(id);
+    templateAudit.deleted(req, id);
 
     res.json({ success: true });
   } catch (err) {

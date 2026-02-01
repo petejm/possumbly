@@ -2,6 +2,7 @@ import { Router } from 'express';
 import passport from '../config/passport.js';
 import { isAuthenticated } from '../middleware/auth.js';
 import { User } from '../db/schema.js';
+import { authAudit } from '../lib/audit.js';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.get(
   passport.authenticate('google', { failureRedirect: `${FRONTEND_URL}/login?error=google_failed` }),
   (req, res) => {
     const user = req.user as User;
+    authAudit.login(req, user.id, 'google');
     if (!user.invite_redeemed && user.role !== 'admin') {
       res.redirect(`${FRONTEND_URL}/redeem-invite`);
     } else {
@@ -31,6 +33,7 @@ router.get(
   passport.authenticate('github', { failureRedirect: `${FRONTEND_URL}/login?error=github_failed` }),
   (req, res) => {
     const user = req.user as User;
+    authAudit.login(req, user.id, 'github');
     if (!user.invite_redeemed && user.role !== 'admin') {
       res.redirect(`${FRONTEND_URL}/redeem-invite`);
     } else {
@@ -49,6 +52,7 @@ router.get(
   }),
   (req, res) => {
     const user = req.user as User;
+    authAudit.login(req, user.id, 'discord');
     if (!user.invite_redeemed && user.role !== 'admin') {
       res.redirect(`${FRONTEND_URL}/redeem-invite`);
     } else {
@@ -73,6 +77,9 @@ router.get('/me', isAuthenticated, (req, res) => {
 
 // Logout
 router.post('/logout', (req, res, next) => {
+  // Log before destroying session (while we still have user info)
+  authAudit.logout(req);
+
   req.logout((err) => {
     if (err) {
       return next(err);
